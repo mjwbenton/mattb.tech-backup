@@ -6,6 +6,7 @@ import mkdirp from "mkdirp";
 import CombinedPathRewriter from "./CombinedPathRewriter";
 import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import IgnorePathRewriter from "./IgnorePathRewiter";
+import FlickrPathRewriter from "./FlickrPathRewriter";
 
 const writeFile = promisify(fs.writeFile);
 
@@ -17,7 +18,7 @@ const pathRewriter = new CombinedPathRewriter([
   new RemoveBasePathRewriter(WEBSITE),
   new IgnorePathRewriter("https://p.typekit.net/"),
   new IgnorePathRewriter("https://use.typekit.net/"),
-  new IgnorePathRewriter("https://live.staticflickr.com")
+  new FlickrPathRewriter()
 ]);
 
 const main = async () => {
