@@ -1,0 +1,22 @@
+{
+  "name": "@mattb.tech/website-backup",
+  "version": "1.0.0",
+  "description": "Makes a complete copy of mattb.tech as a backup",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "go": "npm run build && node src/index.js",
+    "clean": "rm -Rf ./output/*"
+  },
+  "author": "Matt Benton <m@mattb.tech>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mkdirp": "^1.0.4",
+    "puppeteer": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/mkdirp": "^1.0.0",
+    "@types/puppeteer": "^2.0.1",
+    "typescript": "^3.8.3"
+  }
+}
