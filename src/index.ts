@@ -7,6 +7,7 @@ import CombinedPathRewriter from "./CombinedPathRewriter";
 import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import IgnorePathRewriter from "./IgnorePathRewiter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
+import { TrackingPathRewriter } from "./TrackingPathRewriter";
 
 const writeFile = promisify(fs.writeFile);
 
@@ -14,12 +15,14 @@ const WEBSITE = "https://mattb.tech/";
 const OUTPUT_PATH = path.normalize(path.join(__dirname, "..", "output"));
 const VIEWPORT = { width: 4000, height: 2000 };
 
-const pathRewriter = new CombinedPathRewriter([
-  new RemoveBasePathRewriter(WEBSITE),
-  new IgnorePathRewriter("https://p.typekit.net/"),
-  new IgnorePathRewriter("https://use.typekit.net/"),
-  new FlickrPathRewriter()
-]);
+const pathRewriter = new TrackingPathRewriter(
+  new CombinedPathRewriter([
+    new RemoveBasePathRewriter(WEBSITE),
+    new IgnorePathRewriter("https://p.typekit.net/"),
+    new IgnorePathRewriter("https://use.typekit.net/"),
+    new FlickrPathRewriter()
+  ])
+);
 
 const main = async () => {
   try {
