@@ -11,6 +11,7 @@ const writeFile = promisify(fs.writeFile);
 
 const WEBSITE = "https://mattb.tech/";
 const OUTPUT_PATH = path.normalize(path.join(__dirname, "..", "output"));
+const VIEWPORT = { width: 4000, height: 2000 };
 
 const pathRewriter = new CombinedPathRewriter([
   new RemoveBasePathRewriter(WEBSITE),
@@ -23,6 +24,7 @@ const main = async () => {
   try {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
+    await page.setViewport(VIEWPORT);
     page.on("response", async response => {
       const rewriterPath = pathRewriter.rewritePath(response.url());
       if (!rewriterPath) {
