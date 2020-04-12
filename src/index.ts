@@ -5,10 +5,10 @@ import path from "path";
 import mkdirp from "mkdirp";
 import CombinedPathRewriter from "./CombinedPathRewriter";
 import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
-import IgnorePathRewriter from "./IgnorePathRewiter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
 import { TrackingPathRewriter } from "./TrackingPathRewriter";
 import BufferEditor from "./BufferEditor";
+import TypekitPathRewriter from "./TypekitPathRewriter";
 
 const writeFile = promisify(fs.writeFile);
 
@@ -20,8 +20,7 @@ const pathRewriter = new TrackingPathRewriter(
   new CombinedPathRewriter([
     new RemoveBasePathRewriter(WEBSITE),
     new FlickrPathRewriter(),
-    new IgnorePathRewriter("https://p.typekit.net/"),
-    new IgnorePathRewriter("https://use.typekit.net/")
+    new TypekitPathRewriter()
   ])
 );
 
