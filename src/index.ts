@@ -1,19 +1,13 @@
 import puppeteer from "puppeteer";
-import * as fs from "fs";
-import { promisify } from "util";
-import path from "path";
-import mkdirp from "mkdirp";
 import CombinedPathRewriter from "./CombinedPathRewriter";
 import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
 import { TrackingPathRewriter } from "./TrackingPathRewriter";
-import BufferEditor from "./BufferEditor";
+import ContentEditor from "./ContentEditor";
 import TypekitPathRewriter from "./TypekitPathRewriter";
-
-const writeFile = promisify(fs.writeFile);
+import ResponseHandler from "./ResponseHandler";
 
 const WEBSITE = "https://mattb.tech/";
-const OUTPUT_PATH = path.normalize(path.join(__dirname, "..", "output"));
 const VIEWPORT = { width: 4000, height: 2000 };
 
 const pathRewriter = new TrackingPathRewriter(
@@ -24,25 +18,21 @@ const pathRewriter = new TrackingPathRewriter(
   ])
 );
 
-const bufferEditor = new BufferEditor(pathRewriter);
+const contentEditor = new ContentEditor(pathRewriter);
+
+const responseHandler = new ResponseHandler(pathRewriter, contentEditor);
 
 const main = async () => {
   try {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setViewport(VIEWPORT);
-    page.on("response", async response => {
-      const rewriterPath = pathRewriter.rewritePath(response.url());
-      if (!rewriterPath) {
-        return;
-      }
-      const savePath = path.join(OUTPUT_PATH, rewriterPath);
-      await mkdirp(path.parse(savePath).dir);
-      const outputBuffer = await bufferEditor.editBuffer(
-        await response.buffer()
-      );
-      await writeFile(savePath, outputBuffer);
-    });
+    page.on("requestfinished", async request =>
+      responseHandler.handleResponse(request.response())
+    );
+    page.on("requestfailed", async request =>
+      console.error(`Request failed: ${request.url()}`)
+    );
     await page.goto(WEBSITE, { waitUntil: "networkidle0" });
     await browser.close();
   } catch (error) {

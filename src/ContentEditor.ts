@@ -1,17 +1,12 @@
 import PathRewriter from "./PathRewriter";
-import isUtf8 from "isutf8";
 import urlRegex from "url-regex";
 import escapeStringRegexp from "escape-string-regexp";
 
-export default class BufferEditor {
+export default class ContentEditor {
   constructor(private readonly pathRewriter: PathRewriter) {}
 
-  async editBuffer(buffer: Buffer) {
-    if (!isUtf8(buffer)) {
-      return buffer;
-    }
-    let contentStr = buffer.toString();
-    const urls = contentStr.match(urlRegex());
+  editContent(content: string): string {
+    const urls = content.match(urlRegex());
     urls?.forEach(url => {
       if (!this.pathRewriter.willHandle(url)) {
         console.warn(`No handler for ${url}`);
@@ -19,9 +14,9 @@ export default class BufferEditor {
       }
       const newUrl = this.pathRewriter.rewritePath(url);
       if (newUrl !== null) {
-        contentStr = contentStr.replace(new RegExp(escapeStringRegexp(url), 'g'), newUrl);
+        content = content.replace(new RegExp(escapeStringRegexp(url), 'g'), newUrl);
       }
     });
-    return Buffer.from(contentStr);
+    return content;
   }
 }
