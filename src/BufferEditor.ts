@@ -1,6 +1,7 @@
 import PathRewriter from "./PathRewriter";
 import isUtf8 from "isutf8";
 import urlRegex from "url-regex";
+import escapeStringRegexp from "escape-string-regexp";
 
 export default class BufferEditor {
   constructor(private readonly pathRewriter: PathRewriter) {}
@@ -18,7 +19,7 @@ export default class BufferEditor {
       }
       const newUrl = this.pathRewriter.rewritePath(url);
       if (newUrl !== null) {
-        contentStr = contentStr.replace(new RegExp(url, 'g'), newUrl);
+        contentStr = contentStr.replace(new RegExp(escapeStringRegexp(url), 'g'), newUrl);
       }
     });
     return Buffer.from(contentStr);
