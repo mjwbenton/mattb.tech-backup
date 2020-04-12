@@ -8,6 +8,7 @@ import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import IgnorePathRewriter from "./IgnorePathRewiter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
 import { TrackingPathRewriter } from "./TrackingPathRewriter";
+import BufferEditor from "./BufferEditor";
 
 const writeFile = promisify(fs.writeFile);
 
@@ -18,11 +19,13 @@ const VIEWPORT = { width: 4000, height: 2000 };
 const pathRewriter = new TrackingPathRewriter(
   new CombinedPathRewriter([
     new RemoveBasePathRewriter(WEBSITE),
+    new FlickrPathRewriter(),
     new IgnorePathRewriter("https://p.typekit.net/"),
-    new IgnorePathRewriter("https://use.typekit.net/"),
-    new FlickrPathRewriter()
+    new IgnorePathRewriter("https://use.typekit.net/")
   ])
 );
+
+const bufferEditor = new BufferEditor(pathRewriter);
 
 const main = async () => {
   try {
@@ -36,7 +39,10 @@ const main = async () => {
       }
       const savePath = path.join(OUTPUT_PATH, rewriterPath);
       await mkdirp(path.parse(savePath).dir);
-      await writeFile(savePath, await response.buffer());
+      const outputBuffer = await bufferEditor.editBuffer(
+        await response.buffer()
+      );
+      await writeFile(savePath, outputBuffer);
     });
     await page.goto(WEBSITE, { waitUntil: "networkidle0" });
     await browser.close();

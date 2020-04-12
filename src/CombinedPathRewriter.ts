@@ -4,15 +4,14 @@ export default class CombinedPathRewriter implements PathRewriter {
   constructor(private readonly rewriters: Array<PathRewriter>) {}
 
   rewritePath(url: string): string {
-    for (const rewriter of this.rewriters) {
-      if (rewriter.willHandle(url)) {
-        return rewriter.rewritePath(url);
-      }
+    const rewriter = this.rewriters.find(rewriter => rewriter.willHandle(url));
+    if (!rewriter) {
+      throw new Error(`No matching rewriter for url: "${url}"`);
     }
-    throw new Error(`No matching rewriter for url: "${url}"`);
+    return rewriter.rewritePath(url);
   }
 
-  willHandle(_: string): boolean {
-    return true;
+  willHandle(url: string): boolean {
+    return this.rewriters.some(rewriter => rewriter.willHandle(url));
   }
 }

@@ -11,8 +11,11 @@
   "author": "Matt Benton <m@mattb.tech>",
   "license": "UNLICENSED",
   "dependencies": {
+    "clean": "^4.0.2",
+    "isutf8": "^2.1.0",
     "mkdirp": "^1.0.4",
-    "puppeteer": "^2.1.1"
+    "puppeteer": "^2.1.1",
+    "url-regex": "^5.0.0"
   },
   "devDependencies": {
     "@types/mkdirp": "^1.0.0",
