@@ -6,7 +6,9 @@
   "scripts": {
     "build": "tsc",
     "go": "npm run build && node src/index.js",
-    "clean": "rm -Rf ./output/*"
+    "clean": "rm -Rf ./output/*",
+    "serve": "http-server -p 8123 ./output",
+    "test-run": "npm run clean && npm run go && concurrently \"npm run serve\" \"sleep 1 && open http://localhost:8123\""
   },
   "author": "Matt Benton <m@mattb.tech>",
   "license": "UNLICENSED",
@@ -22,6 +24,8 @@
     "@types/escape-string-regexp": "^2.0.1",
     "@types/mkdirp": "^1.0.0",
     "@types/puppeteer": "^2.0.1",
+    "concurrently": "^5.1.0",
+    "http-server": "^0.12.1",
     "typescript": "^3.8.3"
   }
 }
