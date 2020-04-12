@@ -1,7 +1,7 @@
 import PathRewriter from "./PathRewriter";
 
 const FLICKR_BASE_URL = "https://live.staticflickr.com/";
-const OUTPUT_BASE = "flickr/";
+const OUTPUT_BASE = "/flickr/";
 
 export default class FlickrPathRewriter implements PathRewriter {
   rewritePath(url: string): string {
