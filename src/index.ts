@@ -1,17 +1,22 @@
 import puppeteer from "puppeteer";
+import path from "path";
 import CombinedPathRewriter from "./CombinedPathRewriter";
 import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
 import { TrackingPathRewriter } from "./TrackingPathRewriter";
 import ContentEditor from "./ContentEditor";
 import TypekitPathRewriter from "./TypekitPathRewriter";
-import ResponseHandler from "./ResponseHandler";
+import CombinedResponseHandler from "./CombinedResponseHandler";
 import GoodreadsPathRewriter from "./GoodreadsPathRewriter";
 import SpotifyPathRewriter from "./SpotifyPathRewriter";
 import Traverser from "./Traverser";
+import SourcemapResponseHandler from "./SourcemapResponseHandler";
+import TextResponseHandler from "./TextResponseHandler";
+import AnyResponseHandler from "./AnyResponseHandler";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
+const OUTPUT_PATH = path.normalize(path.join(__dirname, "..", "output"));
 
 const pathRewriter = new TrackingPathRewriter(
   new CombinedPathRewriter([
@@ -25,7 +30,11 @@ const pathRewriter = new TrackingPathRewriter(
 
 const contentEditor = new ContentEditor(pathRewriter);
 
-const responseHandler = new ResponseHandler(pathRewriter, contentEditor);
+const responseHandler = new CombinedResponseHandler(pathRewriter, OUTPUT_PATH, [
+  new SourcemapResponseHandler(pathRewriter, OUTPUT_PATH),
+  new TextResponseHandler(contentEditor),
+  new AnyResponseHandler()
+]);
 
 const traverser = new Traverser(WEBSITE, WEBSITE);
 
