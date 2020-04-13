@@ -7,6 +7,7 @@ import ContentEditor from "./ContentEditor";
 import TypekitPathRewriter from "./TypekitPathRewriter";
 import ResponseHandler from "./ResponseHandler";
 import GoodreadsPathRewriter from "./GoodreadsPathRewriter";
+import SpotifyPathRewriter from "./SpotifyPathRewriter";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
@@ -16,7 +17,8 @@ const pathRewriter = new TrackingPathRewriter(
     new RemoveBasePathRewriter(WEBSITE),
     new FlickrPathRewriter(),
     new TypekitPathRewriter(),
-    new GoodreadsPathRewriter()
+    new GoodreadsPathRewriter(),
+    new SpotifyPathRewriter()
   ])
 );
 
