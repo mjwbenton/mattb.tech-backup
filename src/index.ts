@@ -8,6 +8,7 @@ import TypekitPathRewriter from "./TypekitPathRewriter";
 import ResponseHandler from "./ResponseHandler";
 import GoodreadsPathRewriter from "./GoodreadsPathRewriter";
 import SpotifyPathRewriter from "./SpotifyPathRewriter";
+import Traverser from "./Traverser";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
@@ -26,6 +27,8 @@ const contentEditor = new ContentEditor(pathRewriter);
 
 const responseHandler = new ResponseHandler(pathRewriter, contentEditor);
 
+const traverser = new Traverser(WEBSITE, WEBSITE);
+
 const main = async () => {
   try {
     const browser = await puppeteer.launch();
@@ -37,18 +40,7 @@ const main = async () => {
     page.on("requestfailed", async request =>
       console.error(`Request failed: ${request.url()}`)
     );
-    await page.goto(WEBSITE, { waitUntil: "networkidle0", timeout: 0 });
-    const urls = await page.evaluate(() =>
-      Array.from(document.querySelectorAll("a[href]")).map(
-        (el: HTMLAnchorElement) => el.href
-      )
-    );
-    for (const url of urls) {
-      if (url.startsWith(WEBSITE)) {
-        console.log(`Loading page ${url}`);
-        await page.goto(url, { waitUntil: "networkidle0", timeout: 0 });
-      }
-    }
+    await traverser.go(page);
     await browser.close();
   } catch (error) {
     console.error(error);
