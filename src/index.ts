@@ -6,6 +6,7 @@ import { TrackingPathRewriter } from "./TrackingPathRewriter";
 import ContentEditor from "./ContentEditor";
 import TypekitPathRewriter from "./TypekitPathRewriter";
 import ResponseHandler from "./ResponseHandler";
+import GoodreadsPathRewriter from "./GoodreadsPathRewriter";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
@@ -14,7 +15,8 @@ const pathRewriter = new TrackingPathRewriter(
   new CombinedPathRewriter([
     new RemoveBasePathRewriter(WEBSITE),
     new FlickrPathRewriter(),
-    new TypekitPathRewriter()
+    new TypekitPathRewriter(),
+    new GoodreadsPathRewriter()
   ])
 );
 
