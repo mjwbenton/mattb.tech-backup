@@ -28,7 +28,7 @@ export default class TextResponseHandler implements ResponseHandler {
     const contentType = getContentType(response);
     if (
       !TEXT_CONTENT_TYPES.some(textContentType =>
-        contentType.startsWith(textContentType)
+        contentType?.startsWith(textContentType)
       )
     ) {
       return { handled: false };

@@ -11,6 +11,6 @@ export default interface ResponseHandler {
   ): Promise<ResponseHandlerResult>;
 }
 
-export function getContentType(response: Response) {
-  return response.headers()["content-type"];
+export function getContentType(response: Response): string | null {
+  return response.headers()["content-type"] ?? null;
 }
