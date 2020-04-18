@@ -4,12 +4,7 @@ import ResponseHandler, {
 } from "./ResponseHandler";
 import { Response } from "puppeteer";
 import ContentEditor from "./ContentEditor";
-import * as fs from "fs";
-import { promisify } from "util";
-import mkdirp from "mkdirp";
-import path from "path";
-
-const writeFile = promisify(fs.writeFile);
+import FileWriter from './FileWriter';
 
 const TEXT_CONTENT_TYPES = [
   "application/javascript",
@@ -19,7 +14,7 @@ const TEXT_CONTENT_TYPES = [
 ];
 
 export default class TextResponseHandler implements ResponseHandler {
-  constructor(private readonly contentEditor: ContentEditor) {}
+  constructor(private readonly fileWriter: FileWriter, private readonly contentEditor: ContentEditor) {}
 
   async handleResponse(
     response: Response,
@@ -45,11 +40,11 @@ export default class TextResponseHandler implements ResponseHandler {
           output.length
         }`
       );
-      await mkdirp(path.parse(writePath).dir);
-      await writeFile(writePath, output);
+      await this.fileWriter.writeFile(writePath, output);
       return { handled: true };
     } catch (err) {
-      console.error(`Failure in TextResponseHandler for url ${response.url()}: ${err}`);
+      console.error(`Error in TextResponseHandler for url ${response.url()}: ${err}`);
+      return { handled: false };
     }
   }
 }
