@@ -4,7 +4,6 @@ import ResponseHandler, {
 } from "./ResponseHandler";
 import { Response } from "puppeteer";
 import PathRewriter from "./PathRewriter";
-import path from "path";
 import fetch from "node-fetch";
 import FileWriter from "./FileWriter";
 
@@ -18,8 +17,7 @@ const RESPONSE = { handled: false };
 export default class SourcemapResponseHandler implements ResponseHandler {
   constructor(
     private readonly fileWriter: FileWriter,
-    private readonly pathRewriter: PathRewriter,
-    private readonly outputPath: string
+    private readonly pathRewriter: PathRewriter
   ) {}
 
   async handleResponse(
@@ -34,10 +32,12 @@ export default class SourcemapResponseHandler implements ResponseHandler {
     if (!rewriterPath) {
       return RESPONSE;
     }
-    const savePath = path.join(this.outputPath, rewriterPath);
     try {
       const fetchResponse = await fetch(potentialSourcemap);
-      await this.fileWriter.writeFile(savePath, await fetchResponse.buffer());
+      await this.fileWriter.writeFile(
+        rewriterPath,
+        await fetchResponse.buffer()
+      );
     } catch (err) {
       console.warn(`Failed to get sourcemap ${potentialSourcemap}: ${err}`);
     }

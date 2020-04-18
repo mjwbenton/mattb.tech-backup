@@ -15,7 +15,7 @@ import TextResponseHandler from "./TextResponseHandler";
 import AnyResponseHandler from "./AnyResponseHandler";
 import ApiPathRewriter from "./ApiPathRewriter";
 import sleep from "./sleep";
-import localFileWriter from "./LocalFileWriter";
+import LocalFileWriter from "./LocalFileWriter";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
@@ -34,10 +34,10 @@ const pathRewriter = new TrackingPathRewriter(
 
 const contentEditor = new ContentEditor(pathRewriter);
 
-const fileWriter = localFileWriter;
+const fileWriter = new LocalFileWriter(OUTPUT_PATH);
 
-const responseHandler = new CombinedResponseHandler(pathRewriter, OUTPUT_PATH, [
-  new SourcemapResponseHandler(fileWriter, pathRewriter, OUTPUT_PATH),
+const responseHandler = new CombinedResponseHandler(pathRewriter, [
+  new SourcemapResponseHandler(fileWriter, pathRewriter),
   new TextResponseHandler(fileWriter, contentEditor),
   new AnyResponseHandler(fileWriter)
 ]);

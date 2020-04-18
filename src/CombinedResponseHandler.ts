@@ -1,12 +1,10 @@
 import { Response } from "puppeteer";
 import PathRewriter from "./PathRewriter";
 import ResponseHandler from "./ResponseHandler";
-import path from "path";
 
 export default class CombinedResponseHandler {
   constructor(
     private readonly pathRewriter: PathRewriter,
-    private readonly outputPath: string,
     private readonly responseHandlers: Array<ResponseHandler>
   ) {}
   async handleResponse(response: Response) {
@@ -17,9 +15,11 @@ export default class CombinedResponseHandler {
       );
       return;
     }
-    const writePath = path.join(this.outputPath, rewriterPath);
     for (const responseHandler of this.responseHandlers) {
-      const result = await responseHandler.handleResponse(response, writePath);
+      const result = await responseHandler.handleResponse(
+        response,
+        rewriterPath
+      );
       if (result.handled) {
         return;
       }
