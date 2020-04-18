@@ -13,6 +13,7 @@ import Traverser from "./Traverser";
 import SourcemapResponseHandler from "./SourcemapResponseHandler";
 import TextResponseHandler from "./TextResponseHandler";
 import AnyResponseHandler from "./AnyResponseHandler";
+import ApiPathRewriter from "./ApiPathRewriter";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
@@ -24,7 +25,8 @@ const pathRewriter = new TrackingPathRewriter(
     new FlickrPathRewriter(),
     new TypekitPathRewriter(),
     new GoodreadsPathRewriter(),
-    new SpotifyPathRewriter()
+    new SpotifyPathRewriter(),
+    new ApiPathRewriter()
   ])
 );
 
