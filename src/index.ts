@@ -14,6 +14,7 @@ import SourcemapResponseHandler from "./SourcemapResponseHandler";
 import TextResponseHandler from "./TextResponseHandler";
 import AnyResponseHandler from "./AnyResponseHandler";
 import ApiPathRewriter from "./ApiPathRewriter";
+import sleep from "./sleep";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
@@ -42,16 +43,20 @@ const traverser = new Traverser(WEBSITE, WEBSITE);
 
 const main = async () => {
   try {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setViewport(VIEWPORT);
-    page.on("requestfinished", async request =>
-      responseHandler.handleResponse(request.response())
-    );
-    page.on("requestfailed", async request =>
-      console.error(`Request failed: ${request.url()}`)
-    );
-    await traverser.go(page);
+    const browser = await puppeteer.launch({ headless: false });
+    await traverser.go(async () => {
+      const page = await browser.newPage();
+      await page.setViewport(VIEWPORT);
+      page.on("requestfinished", async request =>
+        responseHandler.handleResponse(request.response())
+      );
+      page.on("requestfailed", async request =>
+        console.error(`Request failed: ${request.url()}`)
+      );
+      return page;
+    });
+    // Wait 10 seconds at the end to ensure everything is finished before we close the browser
+    await sleep(10000);
     await browser.close();
   } catch (error) {
     console.error(error);
