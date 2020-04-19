@@ -6,15 +6,14 @@ Makes a completely static copy of the website with all linked resources.
 
 ### Issues
 
-- Keep track of all URLs rewritten and then just go back to those rather than going through everything again?
-- Refactor ResponseHandler
+- api.mattb.tech handling doesn't work because cloudfront can't get to the keys
+- Handle 404s properly
+- Need to avoid persisted query cache misses
 
 ### Better
 
-- api.mattb.tech handling
 - Special srcset handling
 
 ### Infrastructure
 
 - Make it run in a lambda and write to S3
-- Have cloudfront pointing at current backup in a CDK stack

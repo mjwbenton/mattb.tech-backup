@@ -1,0 +1,24 @@
+{
+  "name": "@mattb.tech/website-backup-cdk",
+  "version": "1.0.0",
+  "description": "CDK for backup",
+  "scripts": {
+    "build": "tsc",
+    "deploy": "cdk deploy --profile mattb.tech-deploy --require-approval never"
+  },
+  "author": "Matt Benton <m@mattb.tech>",
+  "license": "UNLICENSED",
+  "dependencies": {},
+  "devDependencies": {
+    "@aws-cdk/aws-certificatemanager": "^1.33.0",
+    "@aws-cdk/aws-cloudfront": "^1.33.0",
+    "@aws-cdk/aws-iam": "^1.33.0",
+    "@aws-cdk/aws-lambda": "^1.33.0",
+    "@aws-cdk/aws-route53": "^1.33.0",
+    "@aws-cdk/aws-route53-targets": "^1.33.0",
+    "@aws-cdk/aws-s3": "^1.33.0",
+    "@aws-cdk/core": "^1.33.0",
+    "aws-cdk": "^1.33.0",
+    "typescript": "^3.8.3"
+  }
+}
