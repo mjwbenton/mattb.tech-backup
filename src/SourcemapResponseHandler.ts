@@ -8,6 +8,7 @@ import fetch from "node-fetch";
 import FileWriter from "./FileWriter";
 
 const RESPONSE = { handled: false };
+const CONTENT_TYPE = "application/octet-stream";
 
 /**
  * Strange "ResponseHandler". When it gets a response that is a Javascript file, it tries to
@@ -36,6 +37,7 @@ export default class SourcemapResponseHandler implements ResponseHandler {
       const fetchResponse = await fetch(potentialSourcemap);
       await this.fileWriter.writeFile(
         rewriterPath,
+        CONTENT_TYPE,
         await fetchResponse.buffer()
       );
     } catch (err) {

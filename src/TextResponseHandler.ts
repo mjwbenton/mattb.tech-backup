@@ -40,7 +40,7 @@ export default class TextResponseHandler implements ResponseHandler {
           output.length
         }`
       );
-      await this.fileWriter.writeFile(writePath, output);
+      await this.fileWriter.writeFile(writePath, contentType, output);
       return { handled: true };
     } catch (err) {
       console.error(`Error in TextResponseHandler for url ${response.url()}: ${err}`);

@@ -9,11 +9,13 @@
     "clean": "rm -Rf ./src/*.js && rm -Rf ./output/*",
     "serve": "http-server -p 8123 ./output",
     "test-run": "npm run clean && npm run go && concurrently \"npm run serve\" \"sleep 1 && open http://localhost:8123\"",
-    "debug": "npm run build && node --inspect-brk src/index.js"
+    "debug": "npm run build && node --inspect-brk src/index.js",
+    "deploy": "cdk deploy --profile mattb.tech-deploy --require-approval never"
   },
   "author": "Matt Benton <m@mattb.tech>",
   "license": "UNLICENSED",
   "dependencies": {
+    "aws-sdk": "^2.658.0",
     "clean": "^4.0.2",
     "escape-string-regexp": "^3.0.0",
     "isutf8": "^2.1.0",
@@ -23,10 +25,19 @@
     "url-regex": "^5.0.0"
   },
   "devDependencies": {
+    "@aws-cdk/aws-certificatemanager": "^1.33.0",
+    "@aws-cdk/aws-cloudfront": "^1.33.0",
+    "@aws-cdk/aws-iam": "^1.33.0",
+    "@aws-cdk/aws-lambda": "^1.33.0",
+    "@aws-cdk/aws-route53": "^1.33.0",
+    "@aws-cdk/aws-route53-targets": "^1.33.0",
+    "@aws-cdk/aws-s3": "^1.33.0",
+    "@aws-cdk/core": "^1.33.0",
     "@types/escape-string-regexp": "^2.0.1",
     "@types/mkdirp": "^1.0.0",
     "@types/node-fetch": "^2.5.6",
     "@types/puppeteer": "^2.0.1",
+    "aws-cdk": "^1.33.0",
     "concurrently": "^5.1.0",
     "http-server": "^0.12.1",
     "typescript": "^3.8.3"

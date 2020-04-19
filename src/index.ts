@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import path from "path";
+//import path from "path";
 import CombinedPathRewriter from "./CombinedPathRewriter";
 import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
@@ -15,11 +15,13 @@ import TextResponseHandler from "./TextResponseHandler";
 import AnyResponseHandler from "./AnyResponseHandler";
 import ApiPathRewriter from "./ApiPathRewriter";
 import sleep from "./sleep";
-import LocalFileWriter from "./LocalFileWriter";
+//import LocalFileWriter from "./LocalFileWriter";
+import S3FileWriter from "./S3FileWriter";
+import { S3 } from "aws-sdk";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
-const OUTPUT_PATH = path.normalize(path.join(__dirname, "..", "output"));
+//const OUTPUT_PATH = path.normalize(path.join(__dirname, "..", "output"));
 
 const pathRewriter = new TrackingPathRewriter(
   new CombinedPathRewriter([
@@ -34,7 +36,12 @@ const pathRewriter = new TrackingPathRewriter(
 
 const contentEditor = new ContentEditor(pathRewriter);
 
-const fileWriter = new LocalFileWriter(OUTPUT_PATH);
+//const fileWriter = new LocalFileWriter(OUTPUT_PATH);
+const fileWriter = new S3FileWriter(
+  new S3(),
+  "mattbtechbackup-backupbucket26b8e51c-s3mkg5h2yjo2",
+  "current"
+);
 
 const responseHandler = new CombinedResponseHandler(pathRewriter, [
   new SourcemapResponseHandler(fileWriter, pathRewriter),
@@ -46,7 +53,7 @@ const traverser = new Traverser(WEBSITE, WEBSITE);
 
 const main = async () => {
   try {
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch();
     await traverser.go(async () => {
       const page = await browser.newPage();
       await page.setViewport(VIEWPORT);
