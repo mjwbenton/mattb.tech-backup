@@ -6,9 +6,6 @@
   "scripts": {
     "build": "tsc",
     "go": "npm run build && node src/index.js",
-    "clean": "rm -Rf ./src/*.js && rm -Rf ./output/*",
-    "serve": "http-server -p 8123 ./output",
-    "test-run": "npm run clean && npm run go && concurrently \"npm run serve\" \"sleep 1 && open http://localhost:8123\"",
     "debug": "npm run build && node --inspect-brk src/index.js",
     "deploy": "cdk deploy --profile mattb.tech-deploy --require-approval never"
   },
