@@ -1,3 +1,4 @@
+import path from "path";
 import * as cdk from "@aws-cdk/core";
 import * as s3 from "@aws-cdk/aws-s3";
 import * as route53 from "@aws-cdk/aws-route53";
@@ -5,6 +6,7 @@ import * as route53targets from "@aws-cdk/aws-route53-targets";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
 import * as acm from "@aws-cdk/aws-certificatemanager";
 import * as iam from "@aws-cdk/aws-iam";
+import * as lambda from "@aws-cdk/aws-lambda";
 
 const ZONE_NAME = "mattb.tech";
 const DOMAIN_NAME = "backup.mattb.tech";
@@ -85,5 +87,17 @@ export default class BackupStack extends cdk.Stack {
         new route53targets.CloudFrontTarget(distribution)
       )
     });
+
+    const lambdaFunction = new lambda.Function(this, "LambdaFunction", {
+      code: new lambda.AssetCode(path.join(__dirname, "../../backup-scraper")),
+      handler: "src/index.handler",
+      runtime: lambda.Runtime.NODEJS_12_X,
+      memorySize: 3008,
+      timeout: cdk.Duration.minutes(10)
+    });
+
+    lambdaFunction.addEnvironment("BACKUP_BUCKET", backupBucket.bucketName);
+
+    backupBucket.grantWrite(lambdaFunction);
   }
 }
