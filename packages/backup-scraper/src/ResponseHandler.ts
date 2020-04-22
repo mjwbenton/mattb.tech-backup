@@ -1,4 +1,4 @@
-import { Response } from "puppeteer";
+import { Response } from "puppeteer-core";
 
 export interface ResponseHandlerResult {
   readonly handled: boolean;

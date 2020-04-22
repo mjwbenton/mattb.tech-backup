@@ -2,7 +2,7 @@ import ResponseHandler, {
   ResponseHandlerResult,
   getContentType
 } from "./ResponseHandler";
-import { Response } from "puppeteer";
+import { Response } from "puppeteer-core";
 import PathRewriter from "./PathRewriter";
 import fetch from "node-fetch";
 import FileWriter from "./FileWriter";

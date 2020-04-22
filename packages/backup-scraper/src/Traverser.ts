@@ -1,4 +1,4 @@
-import { Page, DirectNavigationOptions } from "puppeteer";
+import { Page, DirectNavigationOptions } from "puppeteer-core";
 import sleep from "./sleep";
 
 const GOTO_PARAMS: DirectNavigationOptions = {
@@ -17,13 +17,12 @@ export default class Traverser {
 
   async go(pageFactory: () => Promise<Page>) {
     while (this.toVisit.length !== 0) {
-      const toVisit = [...this.toVisit];
-      this.toVisit = [];
-      await Promise.all(toVisit.map(url => this.handlePage(pageFactory, url)));
+      await this.handlePage(pageFactory, this.toVisit.shift());
       console.log(
         `Currently ${this.toVisit.length} urls on queue: ${this.toVisit}.`
       );
     }
+    return Promise.resolve();
   }
 
   private async handlePage(
@@ -33,8 +32,8 @@ export default class Traverser {
     console.log(`Visiting page ${url}`);
     const page = await pageFactory();
     await page.goto(url, GOTO_PARAMS);
-    // Sleep to ensure that the page is ready to be evaluated
-    await sleep(5000);
+    // Sleep to ensure that the page is ready to be evaluated and additional requests have had time to finish
+    await sleep(10000);
     const nextUrls = await page.evaluate(() =>
       Array.from(document.querySelectorAll("a[href]")).map(
         (el: HTMLAnchorElement) => el.href
@@ -48,7 +47,5 @@ export default class Traverser {
           this.toVisit.push(nextUrl);
         }
       });
-    // Sleep to ensure that the page's request handling has had time to finish
-    await sleep(5000);
   }
 }

@@ -1,4 +1,4 @@
-import { Response } from "puppeteer";
+import { Response } from "puppeteer-core";
 import PathRewriter from "./PathRewriter";
 import ResponseHandler from "./ResponseHandler";
 

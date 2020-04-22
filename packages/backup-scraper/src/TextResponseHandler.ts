@@ -2,7 +2,7 @@ import ResponseHandler, {
   ResponseHandlerResult,
   getContentType
 } from "./ResponseHandler";
-import { Response } from "puppeteer";
+import { Response } from "puppeteer-core";
 import ContentEditor from "./ContentEditor";
 import FileWriter from './FileWriter';
 

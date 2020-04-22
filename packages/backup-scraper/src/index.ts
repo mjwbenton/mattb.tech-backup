@@ -1,5 +1,5 @@
-import puppeteer from "puppeteer";
-//import path from "path";
+import { Context } from "aws-lambda";
+import chromium, { headless } from "chrome-aws-lambda";
 import CombinedPathRewriter from "./CombinedPathRewriter";
 import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
@@ -15,13 +15,11 @@ import TextResponseHandler from "./TextResponseHandler";
 import AnyResponseHandler from "./AnyResponseHandler";
 import ApiPathRewriter from "./ApiPathRewriter";
 import sleep from "./sleep";
-//import LocalFileWriter from "./LocalFileWriter";
 import S3FileWriter from "./S3FileWriter";
 import { S3 } from "aws-sdk";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
-//const OUTPUT_PATH = path.normalize(path.join(__dirname, "..", "output"));
 
 const pathRewriter = new TrackingPathRewriter(
   new CombinedPathRewriter([
@@ -36,10 +34,9 @@ const pathRewriter = new TrackingPathRewriter(
 
 const contentEditor = new ContentEditor(pathRewriter);
 
-//const fileWriter = new LocalFileWriter(OUTPUT_PATH);
 const fileWriter = new S3FileWriter(
   new S3(),
-  "mattbtechbackup-backupbucket26b8e51c-s3mkg5h2yjo2",
+  process.env.BACKUP_BUCKET,
   "current"
 );
 
@@ -51,25 +48,41 @@ const responseHandler = new CombinedResponseHandler(pathRewriter, [
 
 const traverser = new Traverser(WEBSITE, WEBSITE);
 
-const main = async () => {
+const handler = async (_: never, context: Context) => {
   try {
-    const browser = await puppeteer.launch();
+    const browser = await chromium.puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless
+    });
+    browser.on("disconnected", () => {
+      console.log("Browser disconnected");
+    });
+    console.log("Browser launched");
+    console.log("Browser launching new page");
+    const page = await browser.newPage();
+    await page.setViewport(VIEWPORT);
+    page.on("requestfinished", async request =>
+      responseHandler.handleResponse(request.response())
+    );
+    page.on("requestfailed", async request =>
+      console.error(`Request failed: ${request.url()}`)
+    );
+    console.log("Browser launched new page");
     await traverser.go(async () => {
-      const page = await browser.newPage();
-      await page.setViewport(VIEWPORT);
-      page.on("requestfinished", async request =>
-        responseHandler.handleResponse(request.response())
-      );
-      page.on("requestfailed", async request =>
-        console.error(`Request failed: ${request.url()}`)
-      );
       return page;
     });
     // Wait 10 seconds at the end to ensure everything is finished before we close the browser
     await sleep(10000);
+    console.log("Browser closing");
     await browser.close();
+    console.log("Browser closed");
+    context.succeed("Succeeded!");
   } catch (error) {
     console.error(error);
+    context.fail(error);
   }
 };
-main();
+
+export { handler };
