@@ -1,5 +1,5 @@
-import { Context } from "aws-lambda";
-import chromium, { headless } from "chrome-aws-lambda";
+import { ScheduledEvent, Context } from "aws-lambda";
+import chromium from "chrome-aws-lambda";
 import CombinedPathRewriter from "./CombinedPathRewriter";
 import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
@@ -21,7 +21,7 @@ import { S3 } from "aws-sdk";
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
 
-const pathRewriter = new TrackingPathRewriter(
+const PATH_REWRITER = new TrackingPathRewriter(
   new CombinedPathRewriter([
     new RemoveBasePathRewriter(WEBSITE),
     new FlickrPathRewriter(),
@@ -32,23 +32,23 @@ const pathRewriter = new TrackingPathRewriter(
   ])
 );
 
-const contentEditor = new ContentEditor(pathRewriter);
+const CONTENT_EDITOR = new ContentEditor(PATH_REWRITER);
 
-const fileWriter = new S3FileWriter(
-  new S3(),
-  process.env.BACKUP_BUCKET,
-  "current"
-);
+const TRAVERSER = new Traverser(WEBSITE, WEBSITE);
 
-const responseHandler = new CombinedResponseHandler(pathRewriter, [
-  new SourcemapResponseHandler(fileWriter, pathRewriter),
-  new TextResponseHandler(fileWriter, contentEditor),
-  new AnyResponseHandler(fileWriter)
-]);
+const handler = async (event: ScheduledEvent, context: Context) => {
+  const fileWriter = new S3FileWriter(
+    new S3(),
+    process.env.BACKUP_BUCKET,
+    event.time
+  );
 
-const traverser = new Traverser(WEBSITE, WEBSITE);
+  const responseHandler = new CombinedResponseHandler(PATH_REWRITER, [
+    new SourcemapResponseHandler(fileWriter, PATH_REWRITER),
+    new TextResponseHandler(fileWriter, CONTENT_EDITOR),
+    new AnyResponseHandler(fileWriter)
+  ]);
 
-const handler = async (_: never, context: Context) => {
   try {
     const browser = await chromium.puppeteer.launch({
       args: chromium.args,
@@ -70,7 +70,7 @@ const handler = async (_: never, context: Context) => {
       console.error(`Request failed: ${request.url()}`)
     );
     console.log("Browser launched new page");
-    await traverser.go(async () => {
+    await TRAVERSER.go(async () => {
       return page;
     });
     // Wait 10 seconds at the end to ensure everything is finished before we close the browser
