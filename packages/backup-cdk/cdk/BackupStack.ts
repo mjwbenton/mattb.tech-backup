@@ -7,6 +7,9 @@ import * as cloudfront from "@aws-cdk/aws-cloudfront";
 import * as acm from "@aws-cdk/aws-certificatemanager";
 import * as iam from "@aws-cdk/aws-iam";
 import * as lambda from "@aws-cdk/aws-lambda";
+import * as events from "@aws-cdk/aws-events";
+import * as eventsTargets from "@aws-cdk/aws-events-targets";
+import { Duration } from "@aws-cdk/core";
 
 const ZONE_NAME = "mattb.tech";
 const DOMAIN_NAME = "backup.mattb.tech";
@@ -95,9 +98,12 @@ export default class BackupStack extends cdk.Stack {
       memorySize: 3008,
       timeout: cdk.Duration.minutes(10)
     });
-
     lambdaFunction.addEnvironment("BACKUP_BUCKET", backupBucket.bucketName);
-
     backupBucket.grantWrite(lambdaFunction);
+
+    const rule = new events.Rule(this, "Rule", {
+      schedule: events.Schedule.rate(Duration.days(1))
+    });
+    rule.addTarget(new eventsTargets.LambdaFunction(lambdaFunction));
   }
 }

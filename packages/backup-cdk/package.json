@@ -10,15 +10,17 @@
   "license": "UNLICENSED",
   "dependencies": {},
   "devDependencies": {
-    "@aws-cdk/aws-certificatemanager": "^1.33.0",
-    "@aws-cdk/aws-cloudfront": "^1.33.0",
-    "@aws-cdk/aws-iam": "^1.33.0",
-    "@aws-cdk/aws-lambda": "^1.33.0",
-    "@aws-cdk/aws-route53": "^1.33.0",
-    "@aws-cdk/aws-route53-targets": "^1.33.0",
-    "@aws-cdk/aws-s3": "^1.33.0",
-    "@aws-cdk/core": "^1.33.0",
-    "aws-cdk": "^1.33.0",
+    "@aws-cdk/aws-certificatemanager": "^1.34.1",
+    "@aws-cdk/aws-cloudfront": "^1.34.1",
+    "@aws-cdk/aws-events": "^1.34.1",
+    "@aws-cdk/aws-events-targets": "^1.34.1",
+    "@aws-cdk/aws-iam": "^1.34.1",
+    "@aws-cdk/aws-lambda": "^1.34.1",
+    "@aws-cdk/aws-route53": "^1.34.1",
+    "@aws-cdk/aws-route53-targets": "^1.34.1",
+    "@aws-cdk/aws-s3": "^1.34.1",
+    "@aws-cdk/core": "^1.34.1",
+    "aws-cdk": "^1.34.1",
     "typescript": "^3.8.3"
   }
 }
