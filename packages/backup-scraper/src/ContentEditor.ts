@@ -1,15 +1,22 @@
 import PathRewriter from "./PathRewriter";
 import urlRegex from "url-regex";
 import escapeStringRegexp from "escape-string-regexp";
+import {Logger} from 'winston';
 
 export default class ContentEditor {
-  constructor(private readonly pathRewriter: PathRewriter) {}
+  private readonly logger: Logger;
+
+  constructor(private readonly pathRewriter: PathRewriter, parentLogger: Logger) {
+    this.logger = parentLogger.child({
+      source: "ContentEditor"
+    });
+  }
 
   editContent(content: string): string {
     const urls = content.match(urlRegex());
     urls?.forEach(url => {
       if (!this.pathRewriter.willHandle(url)) {
-        console.warn(`No handler for ${url}`);
+        this.logger.debug("No handler for url on rewriting", { url });
         return;
       }
       const newUrl = this.pathRewriter.rewritePath(url);

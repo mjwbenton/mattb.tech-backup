@@ -6,6 +6,7 @@ import { Response } from "puppeteer-core";
 import PathRewriter from "./PathRewriter";
 import fetch from "node-fetch";
 import FileWriter from "./FileWriter";
+import { Logger } from "winston";
 
 const RESPONSE = { handled: false };
 const CONTENT_TYPE = "application/octet-stream";
@@ -16,10 +17,17 @@ const CONTENT_TYPE = "application/octet-stream";
  * as it doesn't actually handle the response for the javascript.
  */
 export default class SourcemapResponseHandler implements ResponseHandler {
+  private readonly logger: Logger;
+
   constructor(
     private readonly fileWriter: FileWriter,
-    private readonly pathRewriter: PathRewriter
-  ) {}
+    private readonly pathRewriter: PathRewriter,
+    parentLogger: Logger
+  ) {
+    this.logger = parentLogger.child({
+      source: "SourcemapResponseHandler"
+    });
+  }
 
   async handleResponse(
     response: Response,
@@ -28,12 +36,14 @@ export default class SourcemapResponseHandler implements ResponseHandler {
     if (getContentType(response) !== "application/javascript") {
       return RESPONSE;
     }
+    const url = response.url();
     const potentialSourcemap = `${response.url()}.map`;
     const rewriterPath = this.pathRewriter.rewritePath(potentialSourcemap);
     if (!rewriterPath) {
       return RESPONSE;
     }
     try {
+      this.logger.debug("Attempting to fetch sourcemap", { url });
       const fetchResponse = await fetch(potentialSourcemap);
       await this.fileWriter.writeFile(
         rewriterPath,
@@ -41,7 +51,7 @@ export default class SourcemapResponseHandler implements ResponseHandler {
         await fetchResponse.buffer()
       );
     } catch (err) {
-      console.warn(`Failed to get sourcemap ${potentialSourcemap}: ${err}`);
+      this.logger.warn("Failed to get sourcemap", { url });
     }
     return RESPONSE;
   }

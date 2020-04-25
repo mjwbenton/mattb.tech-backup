@@ -14,40 +14,68 @@ import SourcemapResponseHandler from "./SourcemapResponseHandler";
 import TextResponseHandler from "./TextResponseHandler";
 import AnyResponseHandler from "./AnyResponseHandler";
 import ApiPathRewriter from "./ApiPathRewriter";
-import sleep from "./sleep";
 import S3FileWriter from "./S3FileWriter";
 import { S3 } from "aws-sdk";
+import winston from "winston";
+import { MESSAGE } from "triple-beam";
 
 const WEBSITE = "https://mattb.tech/";
 const VIEWPORT = { width: 4000, height: 2000 };
 
-const PATH_REWRITER = new TrackingPathRewriter(
-  new CombinedPathRewriter([
-    new RemoveBasePathRewriter(WEBSITE),
-    new FlickrPathRewriter(),
-    new TypekitPathRewriter(),
-    new GoodreadsPathRewriter(),
-    new SpotifyPathRewriter(),
-    new ApiPathRewriter()
-  ])
-);
-
-const CONTENT_EDITOR = new ContentEditor(PATH_REWRITER);
-
-const TRAVERSER = new Traverser(WEBSITE, WEBSITE);
+const LOGGER = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json(),
+    winston.format.printf(info => {
+      return `${info.timestamp} ${info.requestId} ${info.level.toUpperCase()} ${
+        info[MESSAGE]
+      }`;
+    })
+  ),
+  defaultMeta: { service: "mattb.tech-backup" },
+  transports: [new winston.transports.Console({ level: "debug" })]
+});
 
 const handler = async (event: ScheduledEvent, context: Context) => {
+  const logger = LOGGER.child({
+    requestId: context.awsRequestId,
+    functionVersion: context.functionVersion,
+    eventTime: event.time
+  });
+
+  const pathRewriter = new TrackingPathRewriter(
+    new CombinedPathRewriter([
+      new RemoveBasePathRewriter(WEBSITE),
+      new FlickrPathRewriter(),
+      new TypekitPathRewriter(),
+      new GoodreadsPathRewriter(),
+      new SpotifyPathRewriter(),
+      new ApiPathRewriter()
+    ]),
+    logger
+  );
+
+  const contentEditor = new ContentEditor(pathRewriter, logger);
+
+  const traverser = new Traverser(WEBSITE, WEBSITE, logger);
+
   const fileWriter = new S3FileWriter(
     new S3(),
     process.env.BACKUP_BUCKET,
     event.time
   );
 
-  const responseHandler = new CombinedResponseHandler(PATH_REWRITER, [
-    new SourcemapResponseHandler(fileWriter, PATH_REWRITER),
-    new TextResponseHandler(fileWriter, CONTENT_EDITOR),
-    new AnyResponseHandler(fileWriter)
-  ]);
+  const responseHandler = new CombinedResponseHandler(
+    pathRewriter,
+    [
+      new SourcemapResponseHandler(fileWriter, pathRewriter, logger),
+      new TextResponseHandler(fileWriter, contentEditor, logger),
+      new AnyResponseHandler(fileWriter, logger)
+    ],
+    logger
+  );
 
   try {
     const browser = await chromium.puppeteer.launch({
@@ -57,30 +85,27 @@ const handler = async (event: ScheduledEvent, context: Context) => {
       headless: chromium.headless
     });
     browser.on("disconnected", () => {
-      console.log("Browser disconnected");
+      logger.debug("Browser Disconnected");
     });
-    console.log("Browser launched");
-    console.log("Browser launching new page");
+    logger.debug("Browser Launched");
     const page = await browser.newPage();
+    logger.debug("Browser New Page");
     await page.setViewport(VIEWPORT);
     page.on("requestfinished", async request =>
       responseHandler.handleResponse(request.response())
     );
     page.on("requestfailed", async request =>
-      console.error(`Request failed: ${request.url()}`)
+      logger.error("Request failed", { url: request.url() })
     );
-    console.log("Browser launched new page");
-    await TRAVERSER.go(async () => {
+    await traverser.go(async () => {
       return page;
     });
-    // Wait 10 seconds at the end to ensure everything is finished before we close the browser
-    await sleep(10000);
-    console.log("Browser closing");
+    logger.debug("Closing");
     await browser.close();
-    console.log("Browser closed");
+    logger.debug("Closed");
     context.succeed("Succeeded!");
   } catch (error) {
-    console.error(error);
+    logger.error({ error });
     context.fail(error);
   }
 };

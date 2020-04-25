@@ -1,20 +1,29 @@
 import PathRewriter from "./PathRewriter";
+import { Logger } from "winston";
 
 export class TrackingPathRewriter implements PathRewriter {
   private readonly urls: Set<string>;
   private readonly rewrites: Set<string>;
+  private readonly logger: Logger;
 
-  constructor(private readonly actualRewriter: PathRewriter) {
+  constructor(
+    private readonly actualRewriter: PathRewriter,
+    parentLogger: Logger
+  ) {
     this.urls = new Set();
     this.rewrites = new Set();
+    this.logger = parentLogger.child({
+      source: "TrackingPathRewriter"
+    });
   }
 
   rewritePath(url: string): string {
     const result = this.actualRewriter.rewritePath(url);
     if (result !== null && !this.urls.has(url) && this.rewrites.has(result)) {
-      console.error(
-        `Two URLs being written to same location: "${result}" (second url "${url}")`
-      );
+      this.logger.error("Two urls being written to same location", {
+        url,
+        path: result
+      });
     }
     this.urls.add(url);
     this.rewrites.add(result);

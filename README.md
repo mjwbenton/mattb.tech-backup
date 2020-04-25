@@ -2,6 +2,17 @@
 
 Makes a completely static copy of the website with all linked resources.
 
+## View logs
+
+Example insights query:
+
+```
+fields timestamp, level, source, error.message, message, url, path
+| filter @requestId = '228f8ff1-afa6-47d7-9bfe-079081554d7a'
+| filter level != 'debug'
+| sort @timestamp asc
+```
+
 ## Backlog
 
 ### Issues

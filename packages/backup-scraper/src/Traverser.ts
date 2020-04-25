@@ -1,5 +1,6 @@
 import { Page, DirectNavigationOptions } from "puppeteer-core";
 import sleep from "./sleep";
+import { Logger } from "winston";
 
 const GOTO_PARAMS: DirectNavigationOptions = {
   waitUntil: "networkidle0",
@@ -9,18 +10,24 @@ const GOTO_PARAMS: DirectNavigationOptions = {
 export default class Traverser {
   private readonly queued: Set<string>;
   private toVisit: string[];
+  private readonly logger: Logger;
 
-  constructor(startUrl: string, private readonly whitelistDomain: string) {
+  constructor(
+    startUrl: string,
+    private readonly whitelistDomain: string,
+    parentLogger: Logger
+  ) {
     this.queued = new Set<string>([startUrl]);
     this.toVisit = [startUrl];
+    this.logger = parentLogger.child({
+      source: "Traverser"
+    });
   }
 
   async go(pageFactory: () => Promise<Page>) {
     while (this.toVisit.length !== 0) {
       await this.handlePage(pageFactory, this.toVisit.shift());
-      console.log(
-        `Currently ${this.toVisit.length} urls on queue: ${this.toVisit}.`
-      );
+      this.logger.debug("Remaining urls", { remainingUrls: this.toVisit });
     }
     return Promise.resolve();
   }
@@ -29,16 +36,17 @@ export default class Traverser {
     pageFactory: () => Promise<Page>,
     url: string
   ): Promise<void> {
-    console.log(`Visiting page ${url}`);
+    this.logger.debug("Visiting page", { url });
     const page = await pageFactory();
     await page.goto(url, GOTO_PARAMS);
-    // Sleep to ensure that the page is ready to be evaluated and additional requests have had time to finish
+    this.logger.debug("Sleeping 10000", { url });
     await sleep(10000);
     const nextUrls = await page.evaluate(() =>
       Array.from(document.querySelectorAll("a[href]")).map(
         (el: HTMLAnchorElement) => el.href
       )
     );
+    this.logger.debug("Found new urls", { url, nextUrls });
     nextUrls
       .filter(nextUrl => nextUrl.startsWith(this.whitelistDomain))
       .forEach(nextUrl => {

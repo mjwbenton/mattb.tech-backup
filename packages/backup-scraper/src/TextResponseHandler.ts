@@ -5,6 +5,7 @@ import ResponseHandler, {
 import { Response } from "puppeteer-core";
 import ContentEditor from "./ContentEditor";
 import FileWriter from './FileWriter';
+import {Logger} from 'winston';
 
 const TEXT_CONTENT_TYPES = [
   "application/javascript",
@@ -14,7 +15,13 @@ const TEXT_CONTENT_TYPES = [
 ];
 
 export default class TextResponseHandler implements ResponseHandler {
-  constructor(private readonly fileWriter: FileWriter, private readonly contentEditor: ContentEditor) {}
+  private readonly logger: Logger;
+
+  constructor(private readonly fileWriter: FileWriter, private readonly contentEditor: ContentEditor, parentLogger: Logger) {
+    this.logger = parentLogger.child({
+      source: "TextResponseHandler"
+    });
+  }
 
   async handleResponse(
     response: Response,
@@ -31,19 +38,15 @@ export default class TextResponseHandler implements ResponseHandler {
       }
       const text = await response.text();
       if (text.length === 0) {
-        console.log(`Ignoring 0B response for url ${response.url()}`);
+        this.logger.warn("Ignoring 0B response", { url: response.url(), path: writePath, size: 0 });
         return { handled: true };
       }
       const output = this.contentEditor.editContent(text);
-      console.log(
-        `Initial length for ${response.url()}: ${text.length}, output length: ${
-          output.length
-        }`
-      );
+      this.logger.debug("Initial length", { url: response.url(), path: writePath, size: output.length });
       await this.fileWriter.writeFile(writePath, contentType, output);
       return { handled: true };
     } catch (err) {
-      console.error(`Error in TextResponseHandler for url ${response.url()}: ${err}`);
+      this.logger.error("Error in TextResponseHandler", { error: err, url: response.url(), path: writePath });
       return { handled: false };
     }
   }
