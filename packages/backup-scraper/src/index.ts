@@ -97,9 +97,7 @@ const handler = async (event: ScheduledEvent, context: Context) => {
     page.on("requestfailed", async request =>
       logger.error("Request failed", { url: request.url() })
     );
-    await traverser.go(async () => {
-      return page;
-    });
+    await traverser.go(page);
     logger.debug("Closing");
     await browser.close();
     logger.debug("Closed");

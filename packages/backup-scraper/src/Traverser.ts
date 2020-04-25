@@ -24,20 +24,16 @@ export default class Traverser {
     });
   }
 
-  async go(pageFactory: () => Promise<Page>) {
+  async go(page: Page) {
     while (this.toVisit.length !== 0) {
-      await this.handlePage(pageFactory, this.toVisit.shift());
+      await this.handlePage(page, this.toVisit.shift());
       this.logger.debug("Remaining urls", { remainingUrls: this.toVisit });
     }
     return Promise.resolve();
   }
 
-  private async handlePage(
-    pageFactory: () => Promise<Page>,
-    url: string
-  ): Promise<void> {
+  private async handlePage(page: Page, url: string): Promise<void> {
     this.logger.debug("Visiting page", { url });
-    const page = await pageFactory();
     await page.goto(url, GOTO_PARAMS);
     this.logger.debug("Sleeping 10000", { url });
     await sleep(10000);

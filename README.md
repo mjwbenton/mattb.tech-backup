@@ -24,7 +24,6 @@ fields timestamp, level, source, error.message, message, url, path
 
 - Create repo on github
 - Special srcset handling
-- Clean up API for creating new pages (it only works if we re-use the same page)
 
 ### Infrastructure
 
