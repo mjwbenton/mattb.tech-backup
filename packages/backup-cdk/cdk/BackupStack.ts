@@ -9,11 +9,19 @@ import * as iam from "@aws-cdk/aws-iam";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as events from "@aws-cdk/aws-events";
 import * as eventsTargets from "@aws-cdk/aws-events-targets";
+import * as stepFunctions from "@aws-cdk/aws-stepfunctions";
+import * as tasks from "@aws-cdk/aws-stepfunctions-tasks";
+import * as logs from "@aws-cdk/aws-logs";
+import * as cloudwatch from "@aws-cdk/aws-cloudwatch";
+import * as alarmActions from "@aws-cdk/aws-cloudwatch-actions";
+import * as sns from "@aws-cdk/aws-sns";
 import { Duration } from "@aws-cdk/core";
 
 const ZONE_NAME = "mattb.tech";
 const DOMAIN_NAME = "backup.mattb.tech";
 const HOSTED_ZONE_ID = "Z2GPSB1CDK86DH";
+const CURRENT_PATH = "current";
+const ALARM_TOPIC = "arn:aws:sns:us-east-1:858777967843:general-alarms";
 
 export default class BackupStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -65,7 +73,7 @@ export default class BackupStack extends cdk.Stack {
                 }
               }
             ],
-            originPath: "/current",
+            originPath: "/" + CURRENT_PATH,
             s3OriginSource: {
               s3BucketSource: backupBucket,
               originAccessIdentity
@@ -91,19 +99,59 @@ export default class BackupStack extends cdk.Stack {
       )
     });
 
-    const lambdaFunction = new lambda.Function(this, "LambdaFunction", {
+    const scraperFunction = new lambda.Function(this, "Scraper", {
       code: new lambda.AssetCode(path.join(__dirname, "../../backup-scraper")),
       handler: "src/index.handler",
       runtime: lambda.Runtime.NODEJS_12_X,
       memorySize: 3008,
       timeout: cdk.Duration.minutes(10)
     });
-    lambdaFunction.addEnvironment("BACKUP_BUCKET", backupBucket.bucketName);
-    backupBucket.grantWrite(lambdaFunction);
+    scraperFunction.addEnvironment("BACKUP_BUCKET", backupBucket.bucketName);
+    backupBucket.grantWrite(scraperFunction);
+
+    const copierFunction = new lambda.Function(this, "Copier", {
+      code: new lambda.AssetCode(path.join(__dirname, "../../backup-copier")),
+      handler: "src/index.handler",
+      runtime: lambda.Runtime.NODEJS_12_X,
+      memorySize: 1024,
+      timeout: cdk.Duration.minutes(10)
+    });
+    copierFunction.addEnvironment("BACKUP_BUCKET", backupBucket.bucketName);
+    copierFunction.addEnvironment("CURRENT_PATH", CURRENT_PATH);
+    backupBucket.grantReadWrite(copierFunction);
+
+    const scraperTask = new stepFunctions.Task(this, "ScraperTask", {
+      task: new tasks.InvokeFunction(scraperFunction)
+    });
+
+    const copierTask = new stepFunctions.Task(this, "CopierTask", {
+      task: new tasks.InvokeFunction(copierFunction)
+    });
+
+    const stateMachine = new stepFunctions.StateMachine(this, "StateMachine", {
+      definition: stepFunctions.Chain.start(scraperTask).next(copierTask),
+      logs: {
+        destination: new logs.LogGroup(this, "StateMachineLogGroup"),
+        level: stepFunctions.LogLevel.ALL
+      }
+    });
 
     const rule = new events.Rule(this, "Rule", {
       schedule: events.Schedule.rate(Duration.days(1))
     });
-    rule.addTarget(new eventsTargets.LambdaFunction(lambdaFunction));
+    rule.addTarget(new eventsTargets.SfnStateMachine(stateMachine));
+
+    new cloudwatch.Alarm(this, "FailureAlarm", {
+      metric: stateMachine.metricFailed(),
+      threshold: 1,
+      evaluationPeriods: 1,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+      comparisonOperator:
+        cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD
+    }).addAlarmAction(
+      new alarmActions.SnsAction(
+        sns.Topic.fromTopicArn(this, "AlarmTopic", ALARM_TOPIC)
+      )
+    );
   }
 }

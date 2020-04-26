@@ -45,6 +45,8 @@ const handler = async (event: ScheduledEvent, context: Context) => {
     eventTime: event.time
   });
 
+  const prefix = event.time;
+
   const pathRewriter = new TrackingPathRewriter(
     new CombinedPathRewriter([
       new RemoveBasePathRewriter(WEBSITE),
@@ -64,7 +66,7 @@ const handler = async (event: ScheduledEvent, context: Context) => {
   const fileWriter = new S3FileWriter(
     new S3(),
     process.env.BACKUP_BUCKET,
-    event.time
+    prefix
   );
 
   const responseHandler = new CombinedResponseHandler(
@@ -101,7 +103,7 @@ const handler = async (event: ScheduledEvent, context: Context) => {
     logger.debug("Closing");
     await browser.close();
     logger.debug("Closed");
-    context.succeed("Succeeded!");
+    context.succeed({ prefix });
   } catch (error) {
     logger.error({ error });
     context.fail(error);

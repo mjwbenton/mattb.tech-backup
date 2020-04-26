@@ -3,10 +3,6 @@ import winston from "winston";
 import { MESSAGE } from "triple-beam";
 import { Context } from "aws-lambda";
 
-const FROM = "1970-01-01T00:00:00Z";
-const TO = "current";
-const BUCKET = "mattbtechbackup-backupbucket26b8e51c-s3mkg5h2yjo2";
-
 const LOGGER = winston.createLogger({
   level: "info",
   format: winston.format.combine(
@@ -47,23 +43,29 @@ async function listAllKeys(
   }
 }
 
-export async function handler(_: never, context: Context) {
+export async function handler(
+  { prefix }: { prefix: string },
+  context: Context
+) {
   const logger = LOGGER.child({
     requestId: context.awsRequestId,
     functionVersion: context.functionVersion
   });
 
-  const newKeys = await listAllKeys(BUCKET, FROM);
-  const oldKeys = await listAllKeys(BUCKET, TO);
+  const bucket = process.env.BACKUP_BUCKET;
+  const to = process.env.CURRENT_PATH;
+
+  const newKeys = await listAllKeys(bucket, prefix);
+  const oldKeys = await listAllKeys(bucket, to);
   await Promise.all(
-    oldKeys.map(key => s3.deleteObject({ Bucket: BUCKET, Key: key }).promise())
+    oldKeys.map(key => s3.deleteObject({ Bucket: bucket, Key: key }).promise())
   );
   await Promise.all(
     newKeys.map(async sourceKey => {
       const params = {
-        Bucket: BUCKET,
-        Key: TO + sourceKey.substr(FROM.length),
-        CopySource: BUCKET + "/" + sourceKey
+        Bucket: bucket,
+        Key: to + sourceKey.substr(prefix.length),
+        CopySource: bucket + "/" + sourceKey
       };
       try {
         await s3.copyObject(params).promise();
