@@ -1,0 +1,21 @@
+{
+  "name": "@mattb.tech/website-backup-copier",
+  "version": "1.0.0",
+  "description": "Copier for a particular backup",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "Matt Benton <m@mattb.tech>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.663.0",
+    "triple-beam": "^1.3.0",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.51",
+    "@types/triple-beam": "^1.3.0",
+    "typescript": "^3.8.3"
+  }
+}
