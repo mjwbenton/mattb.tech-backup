@@ -34,7 +34,7 @@ const LOGGER = winston.createLogger({
       }`;
     })
   ),
-  defaultMeta: { service: "mattb.tech-backup" },
+  defaultMeta: { service: "mattb.tech-backup-scraper" },
   transports: [new winston.transports.Console({ level: "debug" })]
 });
 
