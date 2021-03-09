@@ -5,9 +5,7 @@ import RemoveBasePathRewriter from "./RemoveBasePathRewriter";
 import FlickrPathRewriter from "./FlickrPathRewriter";
 import { TrackingPathRewriter } from "./TrackingPathRewriter";
 import ContentEditor from "./ContentEditor";
-import TypekitPathRewriter from "./TypekitPathRewriter";
 import CombinedResponseHandler from "./CombinedResponseHandler";
-import GoodreadsPathRewriter from "./GoodreadsPathRewriter";
 import SpotifyPathRewriter from "./SpotifyPathRewriter";
 import Traverser from "./Traverser";
 import SourcemapResponseHandler from "./SourcemapResponseHandler";
@@ -51,8 +49,6 @@ const handler = async (event: ScheduledEvent, context: Context) => {
     new CombinedPathRewriter([
       new RemoveBasePathRewriter(WEBSITE),
       new FlickrPathRewriter(),
-      new TypekitPathRewriter(),
-      new GoodreadsPathRewriter(),
       new SpotifyPathRewriter(),
       new ApiPathRewriter()
     ]),
