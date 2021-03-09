@@ -16,6 +16,7 @@ import S3FileWriter from "./S3FileWriter";
 import { S3 } from "aws-sdk";
 import winston from "winston";
 import { MESSAGE } from "triple-beam";
+import GoogleBooksPathRewriter from "./GoogleBooksPathRewriter";
 
 const WEBSITE = `https://${process.env.WEBSITE}/`;
 const VIEWPORT = { width: 4000, height: 2000 };
@@ -51,6 +52,7 @@ const handler = async (event: ScheduledEvent, context: Context) => {
       new FlickrPathRewriter(),
       new SpotifyPathRewriter(),
       new ApiPathRewriter(),
+      new GoogleBooksPathRewriter(),
     ]),
     logger
   );
