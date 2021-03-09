@@ -38,3 +38,4 @@ fields timestamp, level, source, error.message, message, url, path
 - Handle 404s properly
 - Special srcset handling so that it doesn't try to load images we haven't downloaded
 - When it fails will leave non-working files around (should do clean-up on failure and maybe a retry?)
+- Lazy-loading images?
