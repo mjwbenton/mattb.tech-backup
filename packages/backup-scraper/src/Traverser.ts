@@ -1,6 +1,7 @@
 import { Page, DirectNavigationOptions } from "puppeteer-core";
 import sleep from "./sleep";
 import { Logger } from "winston";
+import Downloader from "./Downloader";
 
 const GOTO_PARAMS: DirectNavigationOptions = {
   waitUntil: "networkidle0",
@@ -15,6 +16,7 @@ export default class Traverser {
   constructor(
     startUrl: string,
     private readonly whitelistDomain: string,
+    private readonly downloader: Downloader,
     parentLogger: Logger
   ) {
     this.queued = new Set<string>([startUrl]);
@@ -33,6 +35,13 @@ export default class Traverser {
   }
 
   private async handlePage(page: Page, url: string): Promise<void> {
+    if (this.downloader.willHandle(url)) {
+      await this.downloader.handleUrl(url);
+      this.logger.debug("Downloader will handle url without traversal", {
+        url,
+      });
+      return;
+    }
     this.logger.debug("Visiting page", { url });
     await page.goto(url, GOTO_PARAMS);
     this.logger.debug("Sleeping 10000", { url });

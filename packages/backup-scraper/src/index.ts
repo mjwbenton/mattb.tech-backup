@@ -17,6 +17,7 @@ import { S3 } from "aws-sdk";
 import winston from "winston";
 import { MESSAGE } from "triple-beam";
 import GoogleBooksPathRewriter from "./GoogleBooksPathRewriter";
+import Downloader from "./Downloader";
 
 const WEBSITE = `https://${process.env.WEBSITE}/`;
 const VIEWPORT = { width: 4000, height: 2000 };
@@ -59,13 +60,15 @@ const handler = async (event: ScheduledEvent, context: Context) => {
 
   const contentEditor = new ContentEditor(pathRewriter, logger);
 
-  const traverser = new Traverser(WEBSITE, WEBSITE, logger);
-
   const fileWriter = new S3FileWriter(
     new S3(),
     process.env.BACKUP_BUCKET,
     prefix
   );
+
+  const downloader = new Downloader(fileWriter, pathRewriter, logger);
+
+  const traverser = new Traverser(WEBSITE, WEBSITE, downloader, logger);
 
   const responseHandler = new CombinedResponseHandler(
     pathRewriter,
