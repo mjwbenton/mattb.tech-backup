@@ -17,23 +17,32 @@ import * as alarmActions from "@aws-cdk/aws-cloudwatch-actions";
 import * as sns from "@aws-cdk/aws-sns";
 import { Duration } from "@aws-cdk/core";
 
-const ZONE_NAME = "mattb.tech";
-const DOMAIN_NAME = "backup.mattb.tech";
-const HOSTED_ZONE_ID = "Z2GPSB1CDK86DH";
 const CURRENT_PATH = "current";
 const ALARM_TOPIC = "arn:aws:sns:us-east-1:858777967843:general-alarms";
 
+interface Props extends cdk.StackProps {
+  hostedZone: {
+    hostedZoneId: string;
+    zoneName: string;
+  };
+  backupDomainName: string;
+  liveDomainName: string;
+}
+
 export default class BackupStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, props: Props) {
     super(scope, id, props);
+
+    const {
+      hostedZone: hostedZoneProps,
+      backupDomainName,
+      liveDomainName,
+    } = props;
 
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
       this,
       "HostedZone",
-      {
-        hostedZoneId: HOSTED_ZONE_ID,
-        zoneName: ZONE_NAME
-      }
+      hostedZoneProps
     );
 
     const backupBucket = new s3.Bucket(this, "BackupBucket");
@@ -49,8 +58,8 @@ export default class BackupStack extends cdk.Stack {
     );
 
     const certificate = new acm.DnsValidatedCertificate(this, "Certificate", {
-      domainName: DOMAIN_NAME,
-      hostedZone: hostedZone
+      domainName: backupDomainName,
+      hostedZone: hostedZone,
     });
 
     const distribution = new cloudfront.CloudFrontWebDistribution(
@@ -69,34 +78,34 @@ export default class BackupStack extends cdk.Stack {
                   cloudfront.CloudFrontAllowedCachedMethods.GET_HEAD,
                 forwardedValues: {
                   cookies: { forward: "none" },
-                  queryString: true
-                }
-              }
+                  queryString: true,
+                },
+              },
             ],
             originPath: "/" + CURRENT_PATH,
             s3OriginSource: {
               s3BucketSource: backupBucket,
-              originAccessIdentity
-            }
-          }
+              originAccessIdentity,
+            },
+          },
         ],
         viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(
           certificate,
           {
-            aliases: [DOMAIN_NAME]
+            aliases: [backupDomainName],
           }
         ),
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       }
     );
 
     new route53.ARecord(this, "DomainRecord", {
       zone: hostedZone,
-      recordName: DOMAIN_NAME,
+      recordName: backupDomainName,
       ttl: cdk.Duration.minutes(5),
       target: route53.RecordTarget.fromAlias(
         new route53targets.CloudFrontTarget(distribution)
-      )
+      ),
     });
 
     const scraperFunction = new lambda.Function(this, "Scraper", {
@@ -104,7 +113,10 @@ export default class BackupStack extends cdk.Stack {
       handler: "src/index.handler",
       runtime: lambda.Runtime.NODEJS_12_X,
       memorySize: 3008,
-      timeout: cdk.Duration.minutes(10)
+      timeout: cdk.Duration.minutes(10),
+      environment: {
+        WEBSITE: liveDomainName,
+      },
     });
     scraperFunction.addEnvironment("BACKUP_BUCKET", backupBucket.bucketName);
     backupBucket.grantWrite(scraperFunction);
@@ -114,30 +126,30 @@ export default class BackupStack extends cdk.Stack {
       handler: "src/index.handler",
       runtime: lambda.Runtime.NODEJS_12_X,
       memorySize: 1024,
-      timeout: cdk.Duration.minutes(10)
+      timeout: cdk.Duration.minutes(10),
     });
     copierFunction.addEnvironment("BACKUP_BUCKET", backupBucket.bucketName);
     copierFunction.addEnvironment("CURRENT_PATH", CURRENT_PATH);
     backupBucket.grantReadWrite(copierFunction);
 
     const scraperTask = new stepFunctions.Task(this, "ScraperTask", {
-      task: new tasks.InvokeFunction(scraperFunction)
+      task: new tasks.InvokeFunction(scraperFunction),
     });
 
     const copierTask = new stepFunctions.Task(this, "CopierTask", {
-      task: new tasks.InvokeFunction(copierFunction)
+      task: new tasks.InvokeFunction(copierFunction),
     });
 
     const stateMachine = new stepFunctions.StateMachine(this, "StateMachine", {
       definition: stepFunctions.Chain.start(scraperTask).next(copierTask),
       logs: {
         destination: new logs.LogGroup(this, "StateMachineLogGroup"),
-        level: stepFunctions.LogLevel.ALL
-      }
+        level: stepFunctions.LogLevel.ALL,
+      },
     });
 
     const rule = new events.Rule(this, "Rule", {
-      schedule: events.Schedule.rate(Duration.days(1))
+      schedule: events.Schedule.rate(Duration.days(1)),
     });
     rule.addTarget(new eventsTargets.SfnStateMachine(stateMachine));
 
@@ -147,7 +159,7 @@ export default class BackupStack extends cdk.Stack {
       evaluationPeriods: 1,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
       comparisonOperator:
-        cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD
+        cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     }).addAlarmAction(
       new alarmActions.SnsAction(
         sns.Topic.fromTopicArn(this, "AlarmTopic", ALARM_TOPIC)

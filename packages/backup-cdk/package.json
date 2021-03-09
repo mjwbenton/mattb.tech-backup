@@ -4,7 +4,7 @@
   "description": "CDK for backup",
   "scripts": {
     "build": "tsc",
-    "deploy": "cdk deploy --profile mattb.tech-deploy --require-approval never"
+    "deploy": "cdk deploy --profile mattb.tech-deploy --require-approval never MattbTechBackup LonesomeBackup"
   },
   "author": "Matt Benton <m@mattb.tech>",
   "license": "UNLICENSED",

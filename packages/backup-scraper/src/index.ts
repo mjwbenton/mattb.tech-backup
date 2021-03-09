@@ -19,7 +19,7 @@ import { S3 } from "aws-sdk";
 import winston from "winston";
 import { MESSAGE } from "triple-beam";
 
-const WEBSITE = "https://mattb.tech/";
+const WEBSITE = `https://${process.env.WEBSITE}/`;
 const VIEWPORT = { width: 4000, height: 2000 };
 
 const LOGGER = winston.createLogger({
