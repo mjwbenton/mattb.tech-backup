@@ -12,14 +12,14 @@ export default class CombinedResponseHandler {
     parentLogger: Logger
   ) {
     this.logger = parentLogger.child({
-      source: "CombinedResponseHandler"
+      source: "CombinedResponseHandler",
     });
   }
   async handleResponse(response: Response) {
     const rewriterPath = this.pathRewriter.rewritePath(response.url());
     if (!rewriterPath) {
       this.logger.warn("Ignoring url as not handled by pathRewriter", {
-        url: response.url()
+        url: response.url(),
       });
       return;
     }

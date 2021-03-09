@@ -13,7 +13,7 @@ export class TrackingPathRewriter implements PathRewriter {
     this.urls = new Set();
     this.rewrites = new Set();
     this.logger = parentLogger.child({
-      source: "TrackingPathRewriter"
+      source: "TrackingPathRewriter",
     });
   }
 
@@ -22,7 +22,7 @@ export class TrackingPathRewriter implements PathRewriter {
     if (result !== null && !this.urls.has(url) && this.rewrites.has(result)) {
       this.logger.error("Two urls being written to same location", {
         url,
-        path: result
+        path: result,
       });
     }
     this.urls.add(url);

@@ -19,7 +19,7 @@ export default class S3FileWriter implements FileWriter {
         Bucket: this.bucket,
         Key: fullPath,
         Body: contents,
-        ContentType: contentType
+        ContentType: contentType,
       })
       .promise();
   }

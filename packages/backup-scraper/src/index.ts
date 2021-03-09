@@ -26,21 +26,21 @@ const LOGGER = winston.createLogger({
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
     winston.format.json(),
-    winston.format.printf(info => {
+    winston.format.printf((info) => {
       return `${info.timestamp} ${info.requestId} ${info.level.toUpperCase()} ${
         info[MESSAGE]
       }`;
     })
   ),
   defaultMeta: { service: "mattb.tech-backup-scraper" },
-  transports: [new winston.transports.Console({ level: "debug" })]
+  transports: [new winston.transports.Console({ level: "debug" })],
 });
 
 const handler = async (event: ScheduledEvent, context: Context) => {
   const logger = LOGGER.child({
     requestId: context.awsRequestId,
     functionVersion: context.functionVersion,
-    eventTime: event.time
+    eventTime: event.time,
   });
 
   const prefix = event.time;
@@ -50,7 +50,7 @@ const handler = async (event: ScheduledEvent, context: Context) => {
       new RemoveBasePathRewriter(WEBSITE),
       new FlickrPathRewriter(),
       new SpotifyPathRewriter(),
-      new ApiPathRewriter()
+      new ApiPathRewriter(),
     ]),
     logger
   );
@@ -70,7 +70,7 @@ const handler = async (event: ScheduledEvent, context: Context) => {
     [
       new SourcemapResponseHandler(fileWriter, pathRewriter, logger),
       new TextResponseHandler(fileWriter, contentEditor, logger),
-      new AnyResponseHandler(fileWriter, logger)
+      new AnyResponseHandler(fileWriter, logger),
     ],
     logger
   );
@@ -80,7 +80,7 @@ const handler = async (event: ScheduledEvent, context: Context) => {
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
-      headless: chromium.headless
+      headless: chromium.headless,
     });
     browser.on("disconnected", () => {
       logger.debug("Browser Disconnected");
@@ -89,10 +89,10 @@ const handler = async (event: ScheduledEvent, context: Context) => {
     const page = await browser.newPage();
     logger.debug("Browser New Page");
     await page.setViewport(VIEWPORT);
-    page.on("requestfinished", async request =>
+    page.on("requestfinished", async (request) =>
       responseHandler.handleResponse(request.response())
     );
-    page.on("requestfailed", async request =>
+    page.on("requestfailed", async (request) =>
       logger.error("Request failed", { url: request.url() })
     );
     await traverser.go(page);

@@ -1,6 +1,6 @@
 import ResponseHandler, {
   ResponseHandlerResult,
-  getContentType
+  getContentType,
 } from "./ResponseHandler";
 import { Response } from "puppeteer-core";
 import PathRewriter from "./PathRewriter";
@@ -25,7 +25,7 @@ export default class SourcemapResponseHandler implements ResponseHandler {
     parentLogger: Logger
   ) {
     this.logger = parentLogger.child({
-      source: "SourcemapResponseHandler"
+      source: "SourcemapResponseHandler",
     });
   }
 

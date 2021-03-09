@@ -4,7 +4,7 @@ import { Logger } from "winston";
 
 const GOTO_PARAMS: DirectNavigationOptions = {
   waitUntil: "networkidle0",
-  timeout: 0
+  timeout: 0,
 };
 
 export default class Traverser {
@@ -20,7 +20,7 @@ export default class Traverser {
     this.queued = new Set<string>([startUrl]);
     this.toVisit = [startUrl];
     this.logger = parentLogger.child({
-      source: "Traverser"
+      source: "Traverser",
     });
   }
 
@@ -44,8 +44,8 @@ export default class Traverser {
     );
     this.logger.debug("Found new urls", { url, nextUrls });
     nextUrls
-      .filter(nextUrl => nextUrl.startsWith(this.whitelistDomain))
-      .forEach(nextUrl => {
+      .filter((nextUrl) => nextUrl.startsWith(this.whitelistDomain))
+      .forEach((nextUrl) => {
         if (!this.queued.has(nextUrl)) {
           this.queued.add(nextUrl);
           this.toVisit.push(nextUrl);

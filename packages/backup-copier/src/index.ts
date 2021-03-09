@@ -9,14 +9,14 @@ const LOGGER = winston.createLogger({
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
     winston.format.json(),
-    winston.format.printf(info => {
+    winston.format.printf((info) => {
       return `${info.timestamp} ${info.requestId} ${info.level.toUpperCase()} ${
         info[MESSAGE]
       }`;
     })
   ),
   defaultMeta: { service: "mattb.tech-backup-copier" },
-  transports: [new winston.transports.Console({ level: "debug" })]
+  transports: [new winston.transports.Console({ level: "debug" })],
 });
 
 const s3 = new S3();
@@ -30,10 +30,10 @@ async function listAllKeys(
     .listObjectsV2({
       Bucket: bucket,
       Prefix: prefix,
-      ContinuationToken: continuationToken
+      ContinuationToken: continuationToken,
     })
     .promise();
-  const keys = response.Contents.map(object => object.Key);
+  const keys = response.Contents.map((object) => object.Key);
   if (response.IsTruncated) {
     return keys.concat(
       await listAllKeys(bucket, prefix, response.ContinuationToken)
@@ -49,7 +49,7 @@ export async function handler(
 ) {
   const logger = LOGGER.child({
     requestId: context.awsRequestId,
-    functionVersion: context.functionVersion
+    functionVersion: context.functionVersion,
   });
 
   const bucket = process.env.BACKUP_BUCKET;
@@ -58,14 +58,16 @@ export async function handler(
   const newKeys = await listAllKeys(bucket, prefix);
   const oldKeys = await listAllKeys(bucket, to);
   await Promise.all(
-    oldKeys.map(key => s3.deleteObject({ Bucket: bucket, Key: key }).promise())
+    oldKeys.map((key) =>
+      s3.deleteObject({ Bucket: bucket, Key: key }).promise()
+    )
   );
   await Promise.all(
-    newKeys.map(async sourceKey => {
+    newKeys.map(async (sourceKey) => {
       const params = {
         Bucket: bucket,
         Key: to + sourceKey.substr(prefix.length),
-        CopySource: bucket + "/" + sourceKey
+        CopySource: bucket + "/" + sourceKey,
       };
       try {
         await s3.copyObject(params).promise();
@@ -74,7 +76,7 @@ export async function handler(
           error,
           bucket: params.Bucket,
           key: params.Key,
-          sourceKey: sourceKey
+          sourceKey: sourceKey,
         });
       }
     })
