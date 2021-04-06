@@ -113,7 +113,7 @@ export default class BackupStack extends cdk.Stack {
       handler: "src/index.handler",
       runtime: lambda.Runtime.NODEJS_12_X,
       memorySize: 3008,
-      timeout: cdk.Duration.minutes(10),
+      timeout: cdk.Duration.minutes(20),
       environment: {
         WEBSITE: liveDomainName,
       },
