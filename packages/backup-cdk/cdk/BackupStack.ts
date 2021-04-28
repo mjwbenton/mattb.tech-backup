@@ -27,6 +27,7 @@ interface Props extends cdk.StackProps {
   };
   backupDomainName: string;
   liveDomainName: string;
+  disable?: boolean;
 }
 
 export default class BackupStack extends cdk.Stack {
@@ -37,6 +38,7 @@ export default class BackupStack extends cdk.Stack {
       hostedZone: hostedZoneProps,
       backupDomainName,
       liveDomainName,
+      disable = false,
     } = props;
 
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
@@ -148,10 +150,12 @@ export default class BackupStack extends cdk.Stack {
       },
     });
 
-    const rule = new events.Rule(this, "Rule", {
-      schedule: events.Schedule.rate(Duration.days(1)),
-    });
-    rule.addTarget(new eventsTargets.SfnStateMachine(stateMachine));
+    if (!disable) {
+      const rule = new events.Rule(this, "Rule", {
+        schedule: events.Schedule.rate(Duration.days(1)),
+      });
+      rule.addTarget(new eventsTargets.SfnStateMachine(stateMachine));
+    }
 
     new cloudwatch.Alarm(this, "FailureAlarm", {
       metric: stateMachine.metricFailed(),

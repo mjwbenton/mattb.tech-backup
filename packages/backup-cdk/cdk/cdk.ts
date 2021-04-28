@@ -18,4 +18,5 @@ new BackupStack(app, "LonesomeBackup", {
   hostedZone: HOSTED_ZONE,
   liveDomainName: "lonesome.mattb.tech",
   backupDomainName: "backup.lonesome.mattb.tech",
+  disable: true,
 });
