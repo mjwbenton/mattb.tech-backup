@@ -9,7 +9,7 @@
   "author": "Matt Benton <m@mattb.tech>",
   "license": "UNLICENSED",
   "dependencies": {
-    "aws-sdk": "^2.663.0",
+    "aws-sdk": "^2.814.0",
     "triple-beam": "^1.3.0",
     "winston": "^3.2.1"
   },
