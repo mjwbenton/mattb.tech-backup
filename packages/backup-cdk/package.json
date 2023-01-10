@@ -9,21 +9,21 @@
   "author": "Matt Benton <m@mattb.tech>",
   "license": "UNLICENSED",
   "dependencies": {
-    "@aws-cdk/aws-cloudwatch-actions": "^1.35.0",
+    "@aws-cdk/aws-cloudwatch-actions": "^1.187.0",
     "@aws-cdk/aws-logs": "^1.35.0",
     "@aws-cdk/aws-sns": "^1.35.0",
     "@aws-cdk/aws-stepfunctions": "^1.35.0",
-    "@aws-cdk/aws-stepfunctions-tasks": "^1.35.0"
+    "@aws-cdk/aws-stepfunctions-tasks": "^1.187.0"
   },
   "devDependencies": {
-    "@aws-cdk/aws-certificatemanager": "^1.35.0",
-    "@aws-cdk/aws-cloudfront": "^1.35.0",
+    "@aws-cdk/aws-certificatemanager": "^1.187.0",
+    "@aws-cdk/aws-cloudfront": "^1.187.0",
     "@aws-cdk/aws-events": "^1.35.0",
-    "@aws-cdk/aws-events-targets": "^1.35.0",
+    "@aws-cdk/aws-events-targets": "^1.187.0",
     "@aws-cdk/aws-iam": "^1.35.0",
-    "@aws-cdk/aws-lambda": "^1.35.0",
+    "@aws-cdk/aws-lambda": "^1.187.0",
     "@aws-cdk/aws-route53": "^1.35.0",
-    "@aws-cdk/aws-route53-targets": "^1.35.0",
+    "@aws-cdk/aws-route53-targets": "^1.187.0",
     "@aws-cdk/aws-s3": "^1.35.0",
     "@aws-cdk/core": "^1.35.0",
     "aws-cdk": "^1.174.0",
